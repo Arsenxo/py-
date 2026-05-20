@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>БАЖ Ақпарат Ағыны Есептегіш</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --panel: #111827;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #a8ff78;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card: #141e2e;
+    --highlight: rgba(0,212,255,0.08);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(0,212,255,0.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(255,107,53,0.05) 0%, transparent 50%);
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(17,24,39,0.8);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    border: 1px solid var(--accent);
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+
+  header h1 {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  header h1 span { color: var(--text); font-weight: 600; }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .panel-header .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+
+  .panel-header h2 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .panel-body { padding: 24px; }
+
+  .field { margin-bottom: 20px; }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 10px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,255,0.1);
+  }
+
+  .field .badge {
+    display: inline-block;
+    background: var(--highlight);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-top: 6px;
+  }
+
+  .btn {
+    width: 100%;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn:hover { background: #33ddff; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,212,255,0.3); }
+  .btn:active { transform: translateY(0); }
+
+  .results { display: none; }
+  .results.visible { display: block; }
+
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .kpi.blue::before { background: var(--accent); }
+  .kpi.orange::before { background: var(--accent2); }
+  .kpi.green::before { background: var(--accent3); }
+  .kpi.purple::before { background: #c084fc; }
+
+  .kpi-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .kpi.blue .kpi-value { color: var(--accent); }
+  .kpi.orange .kpi-value { color: var(--accent2); }
+  .kpi.green .kpi-value { color: var(--accent3); }
+  .kpi.purple .kpi-value { color: #c084fc; }
+
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .chart-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .chart-title {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 16px;
+  }
+
+  canvas { width: 100% !important; }
+
+  .data-table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .data-table-title {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .tbl-scroll { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+
+  th {
+    background: rgba(0,212,255,0.08);
+    color: var(--accent);
+    padding: 8px 10px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 7px 10px;
+    text-align: center;
+    border-bottom: 1px solid rgba(30,45,69,0.5);
+    color: var(--text);
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr.max-row td { background: rgba(0,212,255,0.06); }
+
+  .formula-box {
+    background: rgba(0,212,255,0.04);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+  }
+
+  .formula-box .desc {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 6px;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 12px;
+    margin-top: 4px;
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  .alert {
+    background: rgba(168,255,120,0.07);
+    border: 1px solid rgba(168,255,120,0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--accent3);
+    margin-top: 12px;
+  }
+
+  .step-indicator {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .step {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--border);
+    transition: background 0.4s;
+  }
+
+  .step.done { background: var(--accent); }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .container { padding: 20px; }
+    header { padding: 16px 20px; }
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">БАЖ</div>
+  <h1>Ақпарат Ағыны <span>Есептегіш</span></h1>
+</header>
+
+<div class="container">
+  <div class="step-indicator">
+    <div class="step" id="s1"></div>
+    <div class="step" id="s2"></div>
+    <div class="step" id="s3"></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="dot" style="background:#00d4ff"></div>
+          <h2>Студент мәліметтері</h2>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <label>Тегінің бірінші әрібі</label>
+            <select id="letter" onchange="onInputChange()">
+              <option value="">— Таңдаңыз —</option>
+              <option value="АБ">А, Б</option>
+              <option value="ВД">В – Д</option>
+              <option value="ЕЗ">Е – З</option>
+              <option value="ИК">И, К</option>
+              <option value="ЛН">Л – Н</option>
+              <option value="ОП">О, П</option>
+              <option value="РУ">Р – У</option>
+              <option value="ФШ">Ф – Ш</option>
+              <option value="ЩЭ">Щ – Э</option>
+              <option value="ЮЯ">Ю, Я</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Шифрдің соңғы цифры</label>
+            <select id="lastDigit" onchange="onInputChange()">
+              <option value="">— Таңдаңыз —</option>
+              <option>0</option><option>1</option><option>2</option>
+              <option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Шифрдің соңғысының алдындағы цифр</label>
+            <select id="prevDigit" onchange="onInputChange()">
+              <option value="">— Таңдаңыз —</option>
+              <option>0</option><option>1</option><option>2</option>
+              <option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option>
+            </select>
+          </div>
+
+          <div id="variantInfo" style="display:none; margin-bottom:20px;">
+            <div class="divider"></div>
+            <p class="section-title">Анықталған нұсқа</p>
+            <div class="field">
+              <label>Хабарлар нөмірлері (i)</label>
+              <div class="badge" id="msgNums">—</div>
+            </div>
+            <div class="field">
+              <label>Вариант №</label>
+              <div class="badge" id="varNum">—</div>
+            </div>
+            <div class="field">
+              <label>Символдар саны (a₁, a₂, a₃)</label>
+              <div class="badge" id="symNums">—</div>
+            </div>
+          </div>
+
+          <button class="btn" onclick="calculate()">▶ ЕСЕПТЕУ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="results" id="resultsPanel">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="dot" style="background:#a8ff78"></div>
+          <h2>Есептеу нәтижелері</h2>
+        </div>
+        <div class="panel-body">
+          <div class="kpi-row">
+            <div class="kpi blue">
+              <div class="kpi-label">V_max (ЕЖС)</div>
+              <div class="kpi-value" id="kpiVmax">—</div>
+              <div class="kpi-sub">белгі / сағат</div>
+            </div>
+            <div class="kpi orange">
+              <div class="kpi-label">ЕЖС уақыты</div>
+              <div class="kpi-value" id="kpiEjs">—</div>
+              <div class="kpi-sub">сағат аралығы</div>
+            </div>
+            <div class="kpi green">
+              <div class="kpi-label">V_тәулік</div>
+              <div class="kpi-value" id="kpiVtot">—</div>
+              <div class="kpi-sub">белгі / тәулік</div>
+            </div>
+            <div class="kpi purple">
+              <div class="kpi-label">Шоғырлану η</div>
+              <div class="kpi-value" id="kpiEta">—</div>
+              <div class="kpi-sub">концентрация</div>
+            </div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-title">Ақпарат ағыны — тәулік бойынша (белгі/сағат)</div>
+            <canvas id="chart" height="180"></canvas>
+          </div>
+
+          <p class="section-title">Формулалар</p>
+          <div class="formula-box">
+            Vⱼ = m̄ⱼ¹ · a₁ + m̄ⱼ² · a₂ + m̄ⱼ³ · a₃
+            <div class="desc">j-сағаттағы ақпараттың орташа көлемі (1.4 формула)</div>
+          </div>
+          <div class="formula-box">
+            η = V_max / V_тәу
+            <div class="desc">Шоғырлану коэффициенті (1.5 формула)</div>
+          </div>
+          <div class="formula-box">
+            N = (V_max · β₁ · β₂) / (60 · v)
+            <div class="desc">β₁=0.8, β₂=1.05, v=300 символ/мин (1.8 формула)</div>
+          </div>
+          <div class="alert" id="alertN"></div>
+
+          <div class="divider"></div>
+
+          <div class="data-table-wrap">
+            <div class="data-table-title">Тәуліктік кесте (Vⱼ мәндері)</div>
+            <div class="tbl-scroll">
+              <table id="dataTable"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const TABLE1 = {
+  'АБ': [1,2,3,2,3,4,3,4,5,4,5,6,5,6,7,6,7,8,7,8,9,8,9,10,9,10,1,10,1,2],
+  'ВД': [10,4,2,1,5,3,2,6,4,3,7,5,4,8,6,5,9,7,6,10,8,7,1,9,8,2,10,9,3,1],
+  'ЕЗ': [9,2,8,10,9,3,1,4,10,2,5,1,3,6,2,4,7,3,5,8,4,6,9,5,7,10,6,8,1,7],
+  'ИК': [8,10,6,9,1,7,10,8,2,1,3,9,2,4,10,3,5,1,4,6,2,5,7,3,6,8,4,7,9,5],
+  'ЛН': [7,8,3,9,8,4,9,10,5,10,1,6,1,2,7,2,3,8,3,4,9,4,5,10,5,6,1,6,7,2],
+  'ОП': [6,5,9,7,6,10,8,7,1,9,8,2,10,9,3,1,10,4,2,1,5,3,2,6,4,3,7,5,4,8],
+  'РУ': [5,3,6,6,4,7,7,5,8,8,6,9,9,7,10,10,8,1,1,9,2,2,10,3,3,1,4,4,2,5],
+  'ФШ': [4,1,3,5,2,4,6,3,5,7,4,6,8,5,7,9,6,8,10,7,9,1,8,10,2,9,1,3,10,2],
+  'ЩЭ': [9,3,10,4,10,1,5,1,2,6,2,3,7,3,4,8,4,5,9,5,6,10,6,7,1,7,8,2,8,9],
+  'ЮЯ': [2,7,1,3,8,2,4,9,3,5,10,4,6,1,5,7,2,6,8,3,7,9,4,8,10,5,9,1,6,10],
+};
+
+const TABLE2 = {
+  'АБ': [4,20,6,3,4,8,15,17,5,1],
+  'ВД': [3,17,5,4,18,12,15,2,1,11],
+  'ЕЗ': [10,5,11,5,15,13,14,2,4,6],
+  'ИК': [20,13,8,17,19,6,4,20,13,14],
+  'ЛН': [18,9,3,8,7,2,1,10,11,9],
+  'ОП': [13,20,11,1,10,15,16,8,16,6],
+  'РУ': [7,10,12,3,19,16,14,12,18,7],
+  'ФШ': [8,1,17,7,10,19,7,9,13,20],
+  'ЩЭ': [17,12,14,18,15,2,11,16,4,6],
+  'ЮЯ': [12,2,19,5,19,9,9,18,16,3],
+};
+
+const TABLE3 = [
+  [1,2,2,1,2,1,3,2,1,4,2,3,1,2,3,4,6,7,4,2,1,2,1,1],
+  [0,1,4,3,2,5,4,6,3,4,3,2,3,4,5,7,10,12,9,8,6,3,1,2],
+  [2,3,2,4,3,2,4,5,4,6,7,8,6,5,10,9,12,14,8,7,8,6,5,3],
+  [1,0,1,1,2,1,3,2,3,4,3,2,4,5,4,6,8,10,7,6,7,4,2,1],
+  [1,2,1,2,1,3,2,4,3,5,4,7,8,7,9,8,10,11,9,6,3,1,1,1],
+  [0,1,4,2,3,2,6,12,10,14,12,13,12,10,13,16,7,5,3,4,2,1,1,5],
+  [2,1,2,3,2,4,2,3,3,2,1,3,3,4,3,4,7,6,3,2,3,1,1,2],
+  [0,1,0,1,2,1,3,2,4,2,5,4,3,5,6,6,8,5,3,4,2,1,2,1],
+  [2,1,2,3,2,4,5,6,8,9,8,10,12,14,16,15,15,10,9,5,3,1,2,2],
+  [1,0,2,1,3,2,1,4,5,4,6,5,8,9,10,12,14,12,10,7,5,6,2,1],
+];
+
+const TABLE4 = [
+  null,
+  [100,70,50],[200,30,50],[250,50,100],[240,80,70],[260,100,90],
+  [250,80,80],[140,80,80],[200,100,60],[160,150,100],[280,70,80],
+  [180,100,50],[200,120,140],[300,200,150],[200,180,140],[200,250,80],
+  [250,360,100],[200,120,100],[250,100,50],[200,150,50],[220,120,80],
+];
+
+let chartInstance = null;
+
+function getVariant(letter, lastD, prevD) {
+  const t1row = TABLE1[letter];
+  const idx = parseInt(lastD);
+  const msgs = [t1row[idx*3], t1row[idx*3+1], t1row[idx*3+2]];
+  const varNum = TABLE2[letter][parseInt(prevD)];
+  const syms = TABLE4[varNum];
+  return { msgs, varNum, syms };
+}
+
+function onInputChange() {
+  const letter = document.getElementById('letter').value;
+  const lastD = document.getElementById('lastDigit').value;
+  const prevD = document.getElementById('prevDigit').value;
+  if (!letter || lastD === '' || prevD === '') {
+    document.getElementById('variantInfo').style.display = 'none';
+    return;
+  }
+  const v = getVariant(letter, lastD, prevD);
+  document.getElementById('variantInfo').style.display = 'block';
+  document.getElementById('msgNums').textContent = v.msgs.join(', ');
+  document.getElementById('varNum').textContent = v.varNum;
+  document.getElementById('symNums').textContent = `${v.syms[0]}, ${v.syms[1]}, ${v.syms[2]}`;
+  document.getElementById('s1').classList.add('done');
+}
+
+function calculate() {
+  const letter = document.getElementById('letter').value;
+  const lastD = document.getElementById('lastDigit').value;
+  const prevD = document.getElementById('prevDigit').value;
+  if (!letter || lastD === '' || prevD === '') {
+    alert('Барлық өрістерді толтырыңыз!');
+    return;
+  }
+
+  const v = getVariant(letter, lastD, prevD);
+  const [i1, i2, i3] = v.msgs.map(n => n-1);
+  const [a1, a2, a3] = v.syms;
+
+  const Vj = Array.from({length:24}, (_,j) =>
+    TABLE3[i1][j]*a1 + TABLE3[i2][j]*a2 + TABLE3[i3][j]*a3
+  );
+
+  const maxV = Math.max(...Vj);
+  const maxJ = Vj.indexOf(maxV);
+  const Vtot = Vj.reduce((s,x)=>s+x, 0);
+  const eta = maxV / Vtot;
+  const N_raw = (maxV * 0.8 * 1.05) / (60 * 300);
+  const N = Math.ceil(N_raw);
+
+  document.getElementById('kpiVmax').textContent = maxV.toLocaleString();
+  document.getElementById('kpiEjs').textContent = `${maxJ}–${maxJ+1}`;
+  document.getElementById('kpiVtot').textContent = Vtot.toLocaleString();
+  document.getElementById('kpiEta').textContent = (eta*100).toFixed(1) + '%';
+  document.getElementById('alertN').textContent =
+    `✓ Қажетті құрылғылар саны: N = ${N_raw.toFixed(3)} ≈ ${N} құрылғы`;
+
+  // Table
+  const labels = Array.from({length:24},(_,i)=>`${i}–${i+1}`);
+  let html = '<thead><tr><th>Жол</th>';
+  labels.forEach(l => html += `<th>${l}</th>`);
+  html += '<th>Σ</th></tr></thead><tbody>';
+
+  [
+    { label: `m̄ⱼ (${v.msgs[0]})`, data: TABLE3[i1] },
+    { label: `m̄ⱼ (${v.msgs[1]})`, data: TABLE3[i2] },
+    { label: `m̄ⱼ (${v.msgs[2]})`, data: TABLE3[i3] },
+    { label: 'Vⱼ', data: Vj, isV: true },
+  ].forEach(row => {
+    const sum = row.data.reduce((s,x)=>s+x,0);
+    html += `<tr class="${row.isV ? 'max-row' : ''}"><td style="text-align:left;padding-left:12px;font-weight:600">${row.label}</td>`;
+    row.data.forEach((val, idx) => {
+      const style = row.isV && val===maxV ? ' style="color:#ff6b35;font-weight:700"' : '';
+      html += `<td${style}>${val}</td>`;
+    });
+    html += `<td style="font-weight:600">${sum.toLocaleString()}</td></tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('dataTable').innerHTML = html;
+
+  // Chart
+  const ctx = document.getElementById('chart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: Vj,
+        backgroundColor: Vj.map((_,i) => i===maxJ ? '#ff6b35' : '#00d4ff'),
+        borderRadius: 3,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#111827',
+          borderColor: '#1e2d45',
+          borderWidth: 1,
+          titleColor: '#00d4ff',
+          bodyColor: '#e2e8f0',
+          callbacks: {
+            title: items => `Сағат: ${items[0].label}`,
+            label: item => `Vⱼ = ${item.raw} белгі/сағат`
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color:'#64748b', font:{family:"'IBM Plex Mono'",size:10} }, grid:{color:'rgba(30,45,69,0.5)'} },
+        y: { ticks: { color:'#64748b', font:{family:"'IBM Plex Mono'",size:10} }, grid:{color:'rgba(30,45,69,0.5)'} }
+      }
+    }
+  });
+
+  document.getElementById('resultsPanel').classList.add('visible');
+  document.getElementById('s2').classList.add('done');
+  document.getElementById('s3').classList.add('done');
+  document.getElementById('resultsPanel').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>БАЖ Ақпарат Ағыны Есептегіш</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --panel: #111827;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #a8ff78;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card: #141e2e;
+    --highlight: rgba(0,212,255,0.08);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(0,212,255,0.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(255,107,53,0.05) 0%, transparent 50%);
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(17,24,39,0.8);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    border: 1px solid var(--accent);
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+
+  header h1 {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  header h1 span { color: var(--text); font-weight: 600; }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .panel-header .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+
+  .panel-header h2 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .panel-body { padding: 24px; }
+
+  .field { margin-bottom: 20px; }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 10px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,255,0.1);
+  }
+
+  .field .badge {
+    display: inline-block;
+    background: var(--highlight);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-top: 6px;
+  }
+
+  .btn {
+    width: 100%;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn:hover { background: #33ddff; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,212,255,0.3); }
+  .btn:active { transform: translateY(0); }
+
+  .results { display: none; }
+  .results.visible { display: block; }
+
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .kpi.blue::before { background: var(--accent); }
+  .kpi.orange::before { background: var(--accent2); }
+  .kpi.green::before { background: var(--accent3); }
+  .kpi.purple::before { background: #c084fc; }
+
+  .kpi-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .kpi.blue .kpi-value { color: var(--accent); }
+  .kpi.orange .kpi-value { color: var(--accent2); }
+  .kpi.green .kpi-value { color: var(--accent3); }
+  .kpi.purple .kpi-value { color: #c084fc; }
+
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .chart-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .chart-title {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 16px;
+  }
+
+  canvas { width: 100% !important; }
+
+  .data-table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .data-table-title {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .tbl-scroll { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+
+  th {
+    background: rgba(0,212,255,0.08);
+    color: var(--accent);
+    padding: 8px 10px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 7px 10px;
+    text-align: center;
+    border-bottom: 1px solid rgba(30,45,69,0.5);
+    color: var(--text);
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr.max-row td { background: rgba(0,212,255,0.06); }
+
+  .formula-box {
+    background: rgba(0,212,255,0.04);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+  }
+
+  .formula-box .desc {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 6px;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 12px;
+    margin-top: 4px;
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  .alert {
+    background: rgba(168,255,120,0.07);
+    border: 1px solid rgba(168,255,120,0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--accent3);
+    margin-top: 12px;
+  }
+
+  .step-indicator {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .step {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--border);
+    transition: background 0.4s;
+  }
+
+  .step.done { background: var(--accent); }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .container { padding: 20px; }
+    header { padding: 16px 20px; }
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">БАЖ</div>
+  <h1>Ақпарат Ағыны <span>Есептегіш</span></h1>
+</header>
+
+<div class="container">
+  <div class="step-indicator">
+    <div class="step" id="s1"></div>
+    <div class="step" id="s2"></div>
+    <div class="step" id="s3"></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="dot" style="background:#00d4ff"></div>
+          <h2>Студент мәліметтері</h2>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <label>Тегінің бірінші әрібі</label>
+            <select id="letter" onchange="onInputChange()">
+              <option value="">— Таңдаңыз —</option>
+              <option value="АБ">А, Б</option>
+              <option value="ВД">В – Д</option>
+              <option value="ЕЗ">Е – З</option>
+              <option value="ИК">И, К</option>
+              <option value="ЛН">Л – Н</option>
+              <option value="ОП">О, П</option>
+              <option value="РУ">Р – У</option>
+              <option value="ФШ">Ф – Ш</option>
+              <option value="ЩЭ">Щ – Э</option>
+              <option value="ЮЯ">Ю, Я</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Шифрдің соңғы цифры</label>
+            <select id="lastDigit" onchange="onInputChange()">
+              <option value="">— Таңдаңыз —</option>
+              <option>0</option><option>1</option><option>2</option>
+              <option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Шифрдің соңғысының алдындағы цифр</label>
+            <select id="prevDigit" onchange="onInputChange()">
+              <option value="">— Таңдаңыз —</option>
+              <option>0</option><option>1</option><option>2</option>
+              <option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option>
+            </select>
+          </div>
+
+          <div id="variantInfo" style="display:none; margin-bottom:20px;">
+            <div class="divider"></div>
+            <p class="section-title">Анықталған нұсқа</p>
+            <div class="field">
+              <label>Хабарлар нөмірлері (i)</label>
+              <div class="badge" id="msgNums">—</div>
+            </div>
+            <div class="field">
+              <label>Вариант №</label>
+              <div class="badge" id="varNum">—</div>
+            </div>
+            <div class="field">
+              <label>Символдар саны (a₁, a₂, a₃)</label>
+              <div class="badge" id="symNums">—</div>
+            </div>
+          </div>
+
+          <button class="btn" onclick="calculate()">▶ ЕСЕПТЕУ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="results" id="resultsPanel">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="dot" style="background:#a8ff78"></div>
+          <h2>Есептеу нәтижелері</h2>
+        </div>
+        <div class="panel-body">
+          <div class="kpi-row">
+            <div class="kpi blue">
+              <div class="kpi-label">V_max (ЕЖС)</div>
+              <div class="kpi-value" id="kpiVmax">—</div>
+              <div class="kpi-sub">белгі / сағат</div>
+            </div>
+            <div class="kpi orange">
+              <div class="kpi-label">ЕЖС уақыты</div>
+              <div class="kpi-value" id="kpiEjs">—</div>
+              <div class="kpi-sub">сағат аралығы</div>
+            </div>
+            <div class="kpi green">
+              <div class="kpi-label">V_тәулік</div>
+              <div class="kpi-value" id="kpiVtot">—</div>
+              <div class="kpi-sub">белгі / тәулік</div>
+            </div>
+            <div class="kpi purple">
+              <div class="kpi-label">Шоғырлану η</div>
+              <div class="kpi-value" id="kpiEta">—</div>
+              <div class="kpi-sub">концентрация</div>
+            </div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-title">Ақпарат ағыны — тәулік бойынша (белгі/сағат)</div>
+            <canvas id="chart" height="180"></canvas>
+          </div>
+
+          <p class="section-title">Формулалар</p>
+          <div class="formula-box">
+            Vⱼ = m̄ⱼ¹ · a₁ + m̄ⱼ² · a₂ + m̄ⱼ³ · a₃
+            <div class="desc">j-сағаттағы ақпараттың орташа көлемі (1.4 формула)</div>
+          </div>
+          <div class="formula-box">
+            η = V_max / V_тәу
+            <div class="desc">Шоғырлану коэффициенті (1.5 формула)</div>
+          </div>
+          <div class="formula-box">
+            N = (V_max · β₁ · β₂) / (60 · v)
+            <div class="desc">β₁=0.8, β₂=1.05, v=300 символ/мин (1.8 формула)</div>
+          </div>
+          <div class="alert" id="alertN"></div>
+
+          <div class="divider"></div>
+
+          <div class="data-table-wrap">
+            <div class="data-table-title">Тәуліктік кесте (Vⱼ мәндері)</div>
+            <div class="tbl-scroll">
+              <table id="dataTable"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const TABLE1 = {
+  'АБ': [1,2,3,2,3,4,3,4,5,4,5,6,5,6,7,6,7,8,7,8,9,8,9,10,9,10,1,10,1,2],
+  'ВД': [10,4,2,1,5,3,2,6,4,3,7,5,4,8,6,5,9,7,6,10,8,7,1,9,8,2,10,9,3,1],
+  'ЕЗ': [9,2,8,10,9,3,1,4,10,2,5,1,3,6,2,4,7,3,5,8,4,6,9,5,7,10,6,8,1,7],
+  'ИК': [8,10,6,9,1,7,10,8,2,1,3,9,2,4,10,3,5,1,4,6,2,5,7,3,6,8,4,7,9,5],
+  'ЛН': [7,8,3,9,8,4,9,10,5,10,1,6,1,2,7,2,3,8,3,4,9,4,5,10,5,6,1,6,7,2],
+  'ОП': [6,5,9,7,6,10,8,7,1,9,8,2,10,9,3,1,10,4,2,1,5,3,2,6,4,3,7,5,4,8],
+  'РУ': [5,3,6,6,4,7,7,5,8,8,6,9,9,7,10,10,8,1,1,9,2,2,10,3,3,1,4,4,2,5],
+  'ФШ': [4,1,3,5,2,4,6,3,5,7,4,6,8,5,7,9,6,8,10,7,9,1,8,10,2,9,1,3,10,2],
+  'ЩЭ': [9,3,10,4,10,1,5,1,2,6,2,3,7,3,4,8,4,5,9,5,6,10,6,7,1,7,8,2,8,9],
+  'ЮЯ': [2,7,1,3,8,2,4,9,3,5,10,4,6,1,5,7,2,6,8,3,7,9,4,8,10,5,9,1,6,10],
+};
+
+const TABLE2 = {
+  'АБ': [4,20,6,3,4,8,15,17,5,1],
+  'ВД': [3,17,5,4,18,12,15,2,1,11],
+  'ЕЗ': [10,5,11,5,15,13,14,2,4,6],
+  'ИК': [20,13,8,17,19,6,4,20,13,14],
+  'ЛН': [18,9,3,8,7,2,1,10,11,9],
+  'ОП': [13,20,11,1,10,15,16,8,16,6],
+  'РУ': [7,10,12,3,19,16,14,12,18,7],
+  'ФШ': [8,1,17,7,10,19,7,9,13,20],
+  'ЩЭ': [17,12,14,18,15,2,11,16,4,6],
+  'ЮЯ': [12,2,19,5,19,9,9,18,16,3],
+};
+
+const TABLE3 = [
+  [1,2,2,1,2,1,3,2,1,4,2,3,1,2,3,4,6,7,4,2,1,2,1,1],
+  [0,1,4,3,2,5,4,6,3,4,3,2,3,4,5,7,10,12,9,8,6,3,1,2],
+  [2,3,2,4,3,2,4,5,4,6,7,8,6,5,10,9,12,14,8,7,8,6,5,3],
+  [1,0,1,1,2,1,3,2,3,4,3,2,4,5,4,6,8,10,7,6,7,4,2,1],
+  [1,2,1,2,1,3,2,4,3,5,4,7,8,7,9,8,10,11,9,6,3,1,1,1],
+  [0,1,4,2,3,2,6,12,10,14,12,13,12,10,13,16,7,5,3,4,2,1,1,5],
+  [2,1,2,3,2,4,2,3,3,2,1,3,3,4,3,4,7,6,3,2,3,1,1,2],
+  [0,1,0,1,2,1,3,2,4,2,5,4,3,5,6,6,8,5,3,4,2,1,2,1],
+  [2,1,2,3,2,4,5,6,8,9,8,10,12,14,16,15,15,10,9,5,3,1,2,2],
+  [1,0,2,1,3,2,1,4,5,4,6,5,8,9,10,12,14,12,10,7,5,6,2,1],
+];
+
+const TABLE4 = [
+  null,
+  [100,70,50],[200,30,50],[250,50,100],[240,80,70],[260,100,90],
+  [250,80,80],[140,80,80],[200,100,60],[160,150,100],[280,70,80],
+  [180,100,50],[200,120,140],[300,200,150],[200,180,140],[200,250,80],
+  [250,360,100],[200,120,100],[250,100,50],[200,150,50],[220,120,80],
+];
+
+let chartInstance = null;
+
+function getVariant(letter, lastD, prevD) {
+  const t1row = TABLE1[letter];
+  const idx = parseInt(lastD);
+  const msgs = [t1row[idx*3], t1row[idx*3+1], t1row[idx*3+2]];
+  const varNum = TABLE2[letter][parseInt(prevD)];
+  const syms = TABLE4[varNum];
+  return { msgs, varNum, syms };
+}
+
+function onInputChange() {
+  const letter = document.getElementById('letter').value;
+  const lastD = document.getElementById('lastDigit').value;
+  const prevD = document.getElementById('prevDigit').value;
+  if (!letter || lastD === '' || prevD === '') {
+    document.getElementById('variantInfo').style.display = 'none';
+    return;
+  }
+  const v = getVariant(letter, lastD, prevD);
+  document.getElementById('variantInfo').style.display = 'block';
+  document.getElementById('msgNums').textContent = v.msgs.join(', ');
+  document.getElementById('varNum').textContent = v.varNum;
+  document.getElementById('symNums').textContent = `${v.syms[0]}, ${v.syms[1]}, ${v.syms[2]}`;
+  document.getElementById('s1').classList.add('done');
+}
+
+function calculate() {
+  const letter = document.getElementById('letter').value;
+  const lastD = document.getElementById('lastDigit').value;
+  const prevD = document.getElementById('prevDigit').value;
+  if (!letter || lastD === '' || prevD === '') {
+    alert('Барлық өрістерді толтырыңыз!');
+    return;
+  }
+
+  const v = getVariant(letter, lastD, prevD);
+  const [i1, i2, i3] = v.msgs.map(n => n-1);
+  const [a1, a2, a3] = v.syms;
+
+  const Vj = Array.from({length:24}, (_,j) =>
+    TABLE3[i1][j]*a1 + TABLE3[i2][j]*a2 + TABLE3[i3][j]*a3
+  );
+
+  const maxV = Math.max(...Vj);
+  const maxJ = Vj.indexOf(maxV);
+  const Vtot = Vj.reduce((s,x)=>s+x, 0);
+  const eta = maxV / Vtot;
+  const N_raw = (maxV * 0.8 * 1.05) / (60 * 300);
+  const N = Math.ceil(N_raw);
+
+  document.getElementById('kpiVmax').textContent = maxV.toLocaleString();
+  document.getElementById('kpiEjs').textContent = `${maxJ}–${maxJ+1}`;
+  document.getElementById('kpiVtot').textContent = Vtot.toLocaleString();
+  document.getElementById('kpiEta').textContent = (eta*100).toFixed(1) + '%';
+  document.getElementById('alertN').textContent =
+    `✓ Қажетті құрылғылар саны: N = ${N_raw.toFixed(3)} ≈ ${N} құрылғы`;
+
+  // Table
+  const labels = Array.from({length:24},(_,i)=>`${i}–${i+1}`);
+  let html = '<thead><tr><th>Жол</th>';
+  labels.forEach(l => html += `<th>${l}</th>`);
+  html += '<th>Σ</th></tr></thead><tbody>';
+
+  [
+    { label: `m̄ⱼ (${v.msgs[0]})`, data: TABLE3[i1] },
+    { label: `m̄ⱼ (${v.msgs[1]})`, data: TABLE3[i2] },
+    { label: `m̄ⱼ (${v.msgs[2]})`, data: TABLE3[i3] },
+    { label: 'Vⱼ', data: Vj, isV: true },
+  ].forEach(row => {
+    const sum = row.data.reduce((s,x)=>s+x,0);
+    html += `<tr class="${row.isV ? 'max-row' : ''}"><td style="text-align:left;padding-left:12px;font-weight:600">${row.label}</td>`;
+    row.data.forEach((val, idx) => {
+      const style = row.isV && val===maxV ? ' style="color:#ff6b35;font-weight:700"' : '';
+      html += `<td${style}>${val}</td>`;
+    });
+    html += `<td style="font-weight:600">${sum.toLocaleString()}</td></tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('dataTable').innerHTML = html;
+
+  // Chart
+  const ctx = document.getElementById('chart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: Vj,
+        backgroundColor: Vj.map((_,i) => i===maxJ ? '#ff6b35' : '#00d4ff'),
+        borderRadius: 3,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#111827',
+          borderColor: '#1e2d45',
+          borderWidth: 1,
+          titleColor: '#00d4ff',
+          bodyColor: '#e2e8f0',
+          callbacks: {
+            title: items => `Сағат: ${items[0].label}`,
+            label: item => `Vⱼ = ${item.raw} белгі/сағат`
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color:'#64748b', font:{family:"'IBM Plex Mono'",size:10} }, grid:{color:'rgba(30,45,69,0.5)'} },
+        y: { ticks: { color:'#64748b', font:{family:"'IBM Plex Mono'",size:10} }, grid:{color:'rgba(30,45,69,0.5)'} }
+      }
+    }
+  });
+
+  document.getElementById('resultsPanel').classList.add('visible');
+  document.getElementById('s2').classList.add('done');
+  document.getElementById('s3').classList.add('done');
+  document.getElementById('resultsPanel').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+</script>
+</body>
+</html>
